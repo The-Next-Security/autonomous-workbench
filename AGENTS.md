@@ -30,6 +30,17 @@ El sistema debe comportarse de forma autónoma, trazable y segura, sin depender 
 ### 2.5 Un commit por cambio lógico
 - No mezclar múltiples cambios en un mismo commit
 
+
+### 2.6 Una branch y worktree por tarea
+- Cada tarea nueva debe ejecutarse en una branch nueva
+- Cada tarea nueva debe usar una worktree nueva cuando aplique
+- No reutilizar una branch que ya tenga un PR abierto
+
+### 2.7 Shell seguro para trazabilidad
+- Evitar backticks en comandos shell que construyan comentarios para GitHub
+- Preferir texto plano o body-file cuando se publiquen comentarios largos
+- Si un comentario puede romper quoting, escalar o usar un método más seguro
+
 ---
 
 ## 3. Flujo operativo esperado
