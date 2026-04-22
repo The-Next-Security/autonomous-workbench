@@ -31,6 +31,31 @@ Como mínimo:
 - Hacer solo el cambio necesario para cumplir la tarea
 - No mezclar cambios no relacionados
 
+### 4.1 Interpretación obligatoria de repo-task
+
+Cualquier petición que implique crear, modificar o agregar un archivo versionable dentro del repositorio debe tratarse como una **repo-task**, aunque la instrucción venga expresada de forma simple.
+
+Ejemplos:
+- crear un archivo
+- agregar una nota
+- modificar README
+- dejar un marcador de validación
+
+Estas peticiones no deben ejecutarse como escritura directa aislada en el repo, por ejemplo:
+- `printf > archivo`
+- `echo > archivo`
+- redirecciones directas similares
+
+Deben resolverse mediante el flujo autónomo completo:
+- worktree
+- branch `feature/*` o `fix/*`
+- cambio mínimo
+- commit trazable
+- push
+- PR hacia `dev`
+
+Si se requiere aprobación, esta debe referirse al flujo estructurado y no al comando literal de escritura.
+
 ### 5. Corredor permitido
 Toda ejecución autónoma debe ocurrir solo dentro de:
 - `/opt/tns-workbench/autonomous-workbench`
