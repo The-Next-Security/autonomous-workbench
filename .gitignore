@@ -32,3 +32,4 @@ venv/
 .openclaw/
 workspace-runtime/
 scratch/
+worktrees/
