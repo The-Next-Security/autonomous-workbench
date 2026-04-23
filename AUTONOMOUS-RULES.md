@@ -37,6 +37,16 @@ Toda ejecución autónoma debe ocurrir solo dentro de:
 - worktrees derivados dentro de:
   - `/opt/tns-workbench/autonomous-workbench/worktrees`
 
+
+### 5.1 Aislamiento por tarea
+- Cada tarea nueva debe usar una branch nueva
+- No reutilizar una branch que ya tenga un PR abierto
+- Cuando aplique, cada tarea nueva debe usar una worktree nueva
+
+### 5.2 Shell seguro para comentarios
+- Evitar backticks en comandos shell que construyan comentarios para GitHub
+- Preferir body-file o texto plano para comentarios largos
+
 ### 6. Rutas prohibidas
 La ejecución autónoma no debe modificar:
 - `/root/.openclaw/`
