@@ -33,3 +33,8 @@ venv/
 workspace-runtime/
 scratch/
 worktrees/
+
+# Local internal notes (not part of the system)
+internal-notes/
+gap-analisis-*.md
+tabla-gap-analisis-*.md
