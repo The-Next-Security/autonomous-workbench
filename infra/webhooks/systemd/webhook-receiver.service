@@ -1,0 +1,24 @@
+[Unit]
+Description=TNS autonomous workbench — GitHub webhook receiver
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/env node /opt/tns-workbench/autonomous-workbench/infra/webhooks/github-handler.js
+Restart=on-failure
+RestartSec=5
+Environment=NODE_ENV=production
+Environment=WEBHOOK_PORT=18910
+Environment=WEBHOOK_BIND=127.0.0.1
+# WEBHOOK_SECRET must be provided via an EnvironmentFile pointing to a
+# file outside the repo, with 0600 perms. Example:
+#   EnvironmentFile=%h/.keys/webhook-receiver.env
+# The env file should contain a single line:
+#   WEBHOOK_SECRET=<value>
+# Optionally also:
+#   WEBHOOK_ALLOW_CIDRS=100.64.0.0/10  (Tailscale default range)
+EnvironmentFile=%h/.keys/webhook-receiver.env
+
+[Install]
+WantedBy=default.target
