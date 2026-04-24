@@ -1,0 +1,18 @@
+# age recipients file — one public recipient per line.
+#
+# Real file must live OUTSIDE the repo at:
+#   /root/.keys/age-recipients.txt      (public, used by backup script)
+#   /root/.keys/age-identity.txt        (PRIVATE, used by restore script)
+#
+# Never commit the real files. This .example is only a format reference.
+#
+# Generate a key pair with:
+#   age-keygen -o /root/.keys/age-identity.txt
+# The public recipient is the line in that file starting with "# public key:".
+# Copy the recipient (the line WITHOUT the comment prefix) into the
+# recipients file:
+#
+# age1qyqszqgpqyqszqgpqyqszqgpqyqszqgpqyqszqgpqyqszqgpqyqszqexample
+#
+# You can add multiple recipients (one per line) if multiple humans need
+# to be able to decrypt.
