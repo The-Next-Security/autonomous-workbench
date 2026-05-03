@@ -38,3 +38,8 @@ internal-notes/
 gap-analisis-*.md
 tabla-gap-analisis-*.md
 worktrees/
+
+# Agent runtime memory and sensitive evaluation files
+MEMORY.md
+memory/
+openclaw-*.txt
