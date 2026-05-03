@@ -32,7 +32,6 @@ venv/
 .openclaw/
 workspace-runtime/
 scratch/
-worktrees/
 
 # Local internal notes (not part of the system)
 internal-notes/
