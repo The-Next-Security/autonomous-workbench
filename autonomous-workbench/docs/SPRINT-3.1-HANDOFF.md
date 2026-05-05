@@ -172,7 +172,7 @@ git, gh, ls, cat, grep, find, pwd, echo, head, tail, wc, node, npm, python3
 | G-13 | Validación e2e Sprint 1 (Roy + worker) | ✅ Cerrado — PR #16 merged (feature/test-hello-world) |
 | G-14 | Validación e2e Sprint 2 (QA loop) | ⚠️ Infrastructure lista — e2e real pendiente con tarea real de Felipe |
 | G-14.b | Symlinks workers workspace (backend-dev/frontend-dev) | ✅ Symlinks creados Sprint 3.2: repo, worktrees, skills |
-| G-15 | Especialistas efímeros probados | ⚠️ Parcial Sprint 3.3: `tns-debugger-triage` en TOOLS.md de Roy; `node-specialist` pendiente instalación |
+| G-15 | Especialistas efímeros probados | ❌ Pendiente (Sprint 3+) |
 | G-16 | Decisión sprint-manager.js vs Roy | ✅ Opción A — sprint-manager.js como motor |
 | G-17 | Política unblock + completedAt backlog | ✅ Cerrado Sprint 3.3 — timestamps propagados a product-backlog; impedimentHistory archivado |
 | G-18 | Branch protection en todos los agentes | ⚠️ Parcial — Roy ✅, workers pendiente de e2e real |
@@ -374,38 +374,34 @@ Copiar literalmente como primer mensaje al abrir la próxima sesión con Claude 
 
 ---
 
-**PROMPT DE APERTURA — SPRINT 3.4:**
+**PROMPT DE APERTURA — SPRINT 3.3:**
 
 ```
 Retomamos el desarrollo del sistema autónomo OpenClaw en VPS vmi3186391 (Contabo, root).
 
-Lee y sigue al pie de la letra el documento /root/.openclaw/handoff/SPRINT-3.1-HANDOFF.md antes de responder nada. Ese documento contiene el estado exacto del sistema, todos los cambios aplicados hasta Sprint 3.3 y los gaps pendientes.
+Lee y sigue al pie de la letra el documento /root/.openclaw/handoff/SPRINT-3.1-HANDOFF.md antes de responder nada. Ese documento contiene el estado exacto del sistema, todos los cambios aplicados hasta Sprint 3.2 y los gaps pendientes.
 
-Contexto clave (estado al cierre Sprint 3.3, 2026-05-05):
+Contexto clave (estado al cierre Sprint 3.2, 2026-05-05):
 - OpenClaw 2026.5.2 en /usr/lib/node_modules/openclaw/
 - Gateway token en /root/.openclaw/.env → export OPENCLAW_GATEWAY_TOKEN=$(grep OPENCLAW_GATEWAY_TOKEN /root/.openclaw/.env | cut -d= -f2-)
 - Sprint 006 en ready-for-review — 2/2 items done
 - 4 crons activos: health-check-evening (22:00), nightly-bugs-first (03:00), daily-standup (09:00 L-V), sprint-pickup (08:00 lunes)
-- exec-approvals.json: backend-dev y frontend-dev habilitados (ask=off, askFallback=deny)
+- Standup verificado: status=ok, sin sessions_list, reporte generado en scrum/daily-reports/
 
-Cerrado en Sprint 3.3:
-- G-17: sprint-manager.js propaga startedAt/completedAt a product-backlog; impedimentHistory archivado
-- G-14 infra: exec-approvals para backend-dev y frontend-dev habilitados
-- G-15 parcial: tns-debugger-triage en TOOLS.md de Roy; node-specialist pendiente
+Cerrado en Sprint 3.2:
+- sub-G-25: standup reescrito, BOOT.md actualizado, skills/agents symlinked en Roy workspace
+- G-14.b: workers workspaces tienen repo/worktrees/skills symlinkeados
+- G-24.b/c: TELEGRAM_BOT_TOKEN y PERPLEXITY_API_KEY migrados a .env
 
 Gaps pendientes a cerrar (en este orden de prioridad):
 
-1. G-14 e2e QA loop real: infraestructura 100% lista. Ejecutar el loop con tarea real:
-   - Felipe envía tarea vía Telegram a Anibal → Roy
-   - Roy despacha backend-dev → crea PR en feature branch
-   - Roy despacha qa-analyst con PR number → revisa y comenta
-   - Si issues → Roy notifica backend-dev → itera (max 3 veces, política Ralph Wiggum)
-   - qa-analyst aprueba → Roy notifica a Felipe vía Anibal → Felipe hace merge
-   TAREA SUGERIDA: "Roy, crea un endpoint GET /health con respuesta {status: ok, version, uptime} en el repo autonomous-workbench."
+1. G-14 e2e QA loop real: enviar una tarea real vía Telegram → Roy → backend-dev → PR → qa-analyst → feedback → merge. La infraestructura está lista; solo falta ejecutar el loop con una tarea real de Felipe.
 
 2. Verificar primer run del cron sprint-pickup (lunes 11/05 08:00 Santiago). Debería importar issues de GitHub, abrir sprint-007 y arrancar el primer item.
 
-3. G-15 pendiente: node-specialist (skill no instalada). Instalar cuando haya issue real de performance Node.js.
+3. G-15: especialistas efímeros — `debugger` (skill instalada, no probada), `node-specialist` (no instalado). Baja prioridad.
+
+4. G-17: política unblock + timestamps en backlog (sprint-manager.js). Baja prioridad.
 
 Antes de cualquier cambio: leer el archivo actual con Read, hacer backup .bak.YYYYMMDD-HHMMSS, validar con jq empty, reiniciar gateway.
 ```
