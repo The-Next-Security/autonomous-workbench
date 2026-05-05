@@ -1,0 +1,16 @@
+[Unit]
+Description=OpenClaw Gateway failure alert — sends Telegram notification
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+Environment=HOME=/root
+ExecStart=/bin/bash -c '\
+  TOKEN=$(jq -r ".channels.telegram.botToken // empty" /root/.openclaw/openclaw.json 2>/dev/null); \
+  [[ -z "$TOKEN" ]] && exit 0; \
+  MSG="ALERTA: OpenClaw gateway caido en $(hostname) — $(date \"+%%Y-%%m-%%d %%H:%%M:%%S\"). Verificar con: systemctl status openclaw-gateway"; \
+  curl -s -X POST "https://api.telegram.org/bot${TOKEN}/sendMessage" \
+    --data-urlencode "chat_id=6739292510" \
+    --data-urlencode "text=${MSG}" \
+    --max-time 15 > /dev/null 2>&1 || true'
