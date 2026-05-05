@@ -161,7 +161,7 @@ git, gh, ls, cat, grep, find, pwd, echo, head, tail, wc, node, npm, python3
 | G-02 | Worker `backend-dev` | ✅ Canónicos en disco (PR #2 merged) |
 | G-03 | Worker `frontend-dev` | ✅ Canónicos en disco (PR #3 merged) |
 | G-04 | Worker `qa-analyst` | ✅ Canónicos + workspace + exec approvals configurados |
-| G-05 | Cron `daily-standup` 09:00 | ✅ Activo — status=ok (con limitación sessions_list) |
+| G-05 | Cron `daily-standup` 09:00 | ✅ Activo — status=ok (sub-G-25 resuelto Sprint 3.2) |
 | G-06 | Cron `nightly-bugs-first` 03:00 | ✅ Activo — status=ok |
 | G-07 | Cron `health-check-evening` 22:00 | ✅ Activo — status=ok |
 | G-08 | Skill `agent-dispatch` | ⚠️ Sin evaluar — baja prioridad (Roy usa subagents directamente) |
@@ -171,9 +171,10 @@ git, gh, ls, cat, grep, find, pwd, echo, head, tail, wc, node, npm, python3
 | G-12 | Validación e2e Sprint 0 (Roy solo) | ✅ Cerrado Sprint 0 |
 | G-13 | Validación e2e Sprint 1 (Roy + worker) | ✅ Cerrado — PR #16 merged (feature/test-hello-world) |
 | G-14 | Validación e2e Sprint 2 (QA loop) | ⚠️ Infrastructure lista — e2e real pendiente con tarea real de Felipe |
-| G-15 | Especialistas efímeros probados | ❌ Pendiente (Sprint 3+) |
+| G-14.b | Symlinks workers workspace (backend-dev/frontend-dev) | ✅ Symlinks creados Sprint 3.2: repo, worktrees, skills |
+| G-15 | Especialistas efímeros probados | ⚠️ Parcial Sprint 3.3: `tns-debugger-triage` en TOOLS.md de Roy; `node-specialist` pendiente instalación |
 | G-16 | Decisión sprint-manager.js vs Roy | ✅ Opción A — sprint-manager.js como motor |
-| G-17 | Política unblock + completedAt backlog | ❌ Pendiente (Sprint 3+) |
+| G-17 | Política unblock + completedAt backlog | ✅ Cerrado Sprint 3.3 — timestamps propagados a product-backlog; impedimentHistory archivado |
 | G-18 | Branch protection en todos los agentes | ⚠️ Parcial — Roy ✅, workers pendiente de e2e real |
 | G-19 | Auditar auth claude-sonnet-4-6 | ✅ Cerrado Sprint 0 |
 | G-20 | Naming mismatch Anibal/Roy | ✅ Cerrado (D-013) |
@@ -181,54 +182,58 @@ git, gh, ls, cat, grep, find, pwd, echo, head, tail, wc, node, npm, python3
 | G-22 | TNS user openclaw.json | ⚠️ Diferible (root) |
 | G-23 | Workspace mail-agent corrupto | ✅ Cerrado Sprint 1 |
 | G-24 | gateway.auth.token cleartext | ✅ Cerrado Sprint 2.1 (→ .env) |
-| G-24.b | botToken Telegram cleartext | ❌ Deuda técnica |
-| G-24.c | Perplexity apiKey cleartext | ❌ Deuda técnica |
+| G-24.b | botToken Telegram cleartext | ✅ Migrado a `${TELEGRAM_BOT_TOKEN}` en .env (Sprint 3.2) |
+| G-24.c | Perplexity apiKey cleartext | ✅ Migrado a `${PERPLEXITY_API_KEY}` en .env (Sprint 3.2) |
 | G-25 | 4 governance skills + clawflow | ✅ Cerrado Sprint 2.1 |
-| sub-G-25 | sessions_list timeout en standup | ❌ **Nuevo** — Roy no puede listar sesiones activas de workers en cron |
+| sub-G-25 | sessions_list timeout en standup | ✅ Resuelto Sprint 3.2 — standup sin sessions_list, usa workspace paths |
 | sprint-pickup | Cron autónomo backlog pickup | ✅ Creado — primer run lunes 11/05 |
 
-**Conteo**: 18 cerrados ✅ / 7 pendientes ❌ o ⚠️
+**Conteo**: 23 cerrados ✅ / 3 pendientes ⚠️ (Sprint 3.3 cerró: G-17; parcial: G-15; G-14 loop pendiente)
 
 ---
 
 ## 4. Gaps pendientes con detalle
 
-### ⚠️ sub-G-25 — sessions_list timeout en cron standup (BLOCKER para standup real)
+### ✅ sub-G-25 — sessions_list timeout en standup (CERRADO Sprint 3.2)
 
-**Síntoma:** Roy en sesión aislada llama `sessions_list` para consultar estado de backend-dev/frontend-dev → `gateway timeout after 10000ms`.
-**Impacto:** El daily-standup reporta solo el estado del sprint (via sprint-manager.js) pero no puede consultar qué están haciendo los workers en tiempo real.
-**Contexto:** `sessions_list` es una operación de gateway que en sesiones aisladas puede tener problemas de timing. En sesión interactiva de Roy funciona.
-**Opciones a investigar en siguiente sesión:**
-  a. Aumentar timeout del tool `sessions_list` en config de Roy
-  b. Cambiar el prompt del standup para no depender de sessions_list (usar sprint-state.json en lugar de sesiones activas)
-  c. Verificar si hay un parámetro de timeout configurable para el tool
+**Diagnóstico realizado:** El timeout es hardcodeado en `call-HHsCuKDy.js:154` (10000ms). Configurable via `gateway.handshakeTimeoutMs` pero aplica solo a conexiones CLI→gateway, no a tool calls de agent sessions.
+**Fix aplicado:**
+- Reescritura del prompt standup: NO usa `sessions_list`, usa workspace paths + exec+cat para leer sprint-state.json, decisions-log de workers y `gh pr list`
+- BOOT.md actualizado: §3 usa paths workspace para workers, §4 usa `skills/` (workspace), §5 elimina `sessions_list`
+- Symlink `workspaces/roy/skills → /root/.openclaw/skills/` creado (Boot verifica skills sin salir del workspace)
+- Symlinks `workspaces/roy/agents/backend-dev|frontend-dev|qa-analyst` creados
+- `gateway.handshakeTimeoutMs: 30000` agregado a openclaw.json (mejora general para CLI→gateway)
+**Resultado verificado:** standup status=ok, reporte generado y guardado en `scrum/daily-reports/daily-2026-05-05.md`
 
 ---
 
-### ❌ G-14 — e2e QA loop real
+### ⚠️ G-14 — e2e QA loop real (infra completa, loop pendiente)
 
 **Infrastructure:** ✅ Lista (qa-analyst workspace, exec approvals, subagents allowlist en Roy)
-**Falta:** un PR real que qa-analyst revise. El flow completo requiere:
+**Sprint 3.2 — symlinks worker workspaces:** ✅ Creados
+- `workspaces/backend-dev/repo` → `/opt/tns-workbench/autonomous-workbench`
+- `workspaces/backend-dev/worktrees` → `/opt/tns-workbench/autonomous-workbench/worktrees`
+- `workspaces/backend-dev/skills` → `/root/.openclaw/skills`
+- Idem para `frontend-dev` y `qa-analyst`
+
+**Falta aún:** un PR real que qa-analyst revise. El flow completo requiere:
 1. Felipe envía tarea real vía Telegram → Anibal → Roy
 2. Roy despacha backend-dev con worktree
-3. backend-dev implementa y crea PR
+3. backend-dev implementa y crea PR en feature branch
 4. Roy despacha qa-analyst con PR number
 5. qa-analyst revisa, comenta en GitHub PR
 6. Si issues → Roy notifica backend-dev → backend-dev itera
 7. qa-analyst re-revisa → aprueba
 8. Roy reporta a Felipe vía Anibal → Felipe hace merge
 
-**Riesgo identificado:** backend-dev y frontend-dev tienen workspace `workspaces/backend-dev/` y `workspaces/frontend-dev/` que están vacíos (sin symlinks a repos). Para que los workers puedan operar en repos reales, necesitan acceso a los worktrees en `/opt/tns-workbench/autonomous-workbench/worktrees/`. Verificar que los workers puedan escribir en esos paths (workspace restriction).
-
 ---
 
-### ❌ G-24.b/c — Secrets en cleartext en openclaw.json
+### ✅ G-24.b/c — Secrets migrados a .env (CERRADO Sprint 3.2)
 
-**Archivos afectados:** `/root/.openclaw/openclaw.json`
-- `channels.telegram.botToken` — token del bot en cleartext
-- `plugins.perplexity.config.webSearch.apiKey` — API key en cleartext
-
-**Solución recomendada:** Migrar a variables de entorno en `/root/.openclaw/.env`, igual que se hizo con `OPENCLAW_GATEWAY_TOKEN`.
+**Fix aplicado:**
+- `TELEGRAM_BOT_TOKEN` y `PERPLEXITY_API_KEY` agregados a `/root/.openclaw/.env`
+- `openclaw.json` actualizado con referencias `${TELEGRAM_BOT_TOKEN}` y `${PERPLEXITY_API_KEY}`
+- Verificado: gateway reiniciado, Telegram `@asistente_tns_bot` activo
 
 ---
 
@@ -241,6 +246,91 @@ git, gh, ls, cat, grep, find, pwd, echo, head, tail, wc, node, npm, python3
 ### ❌ G-17 — Política de unblock + timestamps en backlog
 
 Cuando un item se bloquea/desbloquea, `sprint-manager.js blockItem/unblockItem` no registra `startedAt/completedAt` de forma consistente. Baja prioridad.
+
+---
+
+---
+
+## 4.bis. Cambios aplicados en Sprint 3.2 (2026-05-05)
+
+### sub-G-25 — standup sin sessions_list ✅
+
+| Archivo | Cambio |
+|---------|--------|
+| `openclaw.json` | `gateway.handshakeTimeoutMs: 30000` agregado |
+| `cron/jobs.json` (standup 19aacccc) | Prompt reescrito: NO sessions_list, paths workspace explícitos |
+| `workspaces/roy/BOOT.md` | §3 usa paths workspace para workers; §4 usa `skills/`; §5 elimina sessions_list |
+| `agents/roy/agent/BOOT.md` | Idem (sincronizado) |
+| `workspaces/roy/TOOLS.md` | Sección `tns-scrum-daily-standup` agregada |
+| `agents/roy/agent/TOOLS.md` | Idem |
+| `workspaces/roy/skills` | Symlink → `/root/.openclaw/skills/` |
+| `workspaces/roy/agents/backend-dev|frontend-dev|qa-analyst` | Symlinks → agent dirs |
+| `workspaces/roy/scrum/daily-reports/` | Directorio creado |
+
+### G-14.b — Worker workspaces ✅
+
+| Workspace | Symlinks creados |
+|-----------|-----------------|
+| `workspaces/backend-dev/` | `repo → autonomous-workbench`, `worktrees → .../worktrees`, `skills → skills` |
+| `workspaces/frontend-dev/` | Idem |
+| `workspaces/qa-analyst/` | Idem |
+
+### G-24.b/c — Secrets a .env ✅
+
+| Archivo | Cambio |
+|---------|--------|
+| `/root/.openclaw/.env` | `TELEGRAM_BOT_TOKEN` y `PERPLEXITY_API_KEY` agregados |
+| `openclaw.json` | `botToken` y `apiKey` migrados a `${ENV_VAR}` |
+
+**Backups Sprint 3.2:**
+```
+openclaw.json.bak.20260505-194254.pre-G25  — antes de sub-G-25
+openclaw.json.bak.20260505-201510.pre-G24bc — antes de G-24.b/c
+cron/jobs.json.bak.20260505-194254.pre-G25
+```
+
+---
+
+## 4.ter. Cambios aplicados en Sprint 3.3 (2026-05-05)
+
+### G-14 infra — exec-approvals para backend-dev/frontend-dev ✅
+
+**Gap detectado:** `backend-dev` y `frontend-dev` no tenían sección en `exec-approvals.json` → cualquier comando requería aprobación manual (bloqueaba el e2e loop).
+
+| Agente | Cambio |
+|--------|--------|
+| `exec-approvals.json` → `backend-dev` | Sección nueva: `ask=off, askFallback=deny, security=allowlist` |
+| `exec-approvals.json` → `frontend-dev` | Idem |
+| Allowlist (ambos) | git, gh, ls, cat, grep, find, pwd, echo, head, tail, wc, node, npm, python3, mkdir, cp, sort, printf, sed, awk, jq, date |
+
+Gateway reiniciado para aplicar cambios.
+
+### G-17 — Timestamps en product-backlog + política unblock ✅
+
+**Bug:** `sprint-manager.js` calculaba `startedAt`/`completedAt` en el sprint-state pero NO los propagaba al `product-backlog.json`. Al desbloquear, el impedimento se borraba permanentemente (sin audit trail).
+
+| Función | Cambio |
+|---------|--------|
+| `startItem` | `backlogItem.startedAt = moved.startedAt` antes de `saveJson` |
+| `completeItem` | `backlogItem.completedAt = moved.completedAt` antes de `saveJson` |
+| `unblockItem` | Impedimento resuelto → `resolved.resolvedAt` + push a `sprintState.impedimentHistory[]` (no se borra) |
+
+### G-15 — Debugger skill documentada en TOOLS.md ⚠️
+
+**Parcial:** La skill `tns-debugger-triage` ya existía en `/root/.openclaw/skills/`. Faltaba en la allowlist de Roy.
+
+| Archivo | Cambio |
+|---------|--------|
+| `workspaces/roy/TOOLS.md` | Sección `tns-debugger-triage` + nota sobre `node-specialist` pendiente |
+| `agents/roy/agent/TOOLS.md` | Idem (sincronizado) |
+
+**`node-specialist`:** Pendiente instalación. No hay skill ni agente. Instalar cuando haya un issue real de performance Node.js.
+
+**Backups Sprint 3.3:**
+```
+exec-approvals.json.bak.20260505-205922.pre-G14-workers
+sprint-manager.js.bak.20260505-205922.pre-G17
+```
 
 ---
 
@@ -284,31 +374,38 @@ Copiar literalmente como primer mensaje al abrir la próxima sesión con Claude 
 
 ---
 
-**PROMPT DE APERTURA — SPRINT 3.2:**
+**PROMPT DE APERTURA — SPRINT 3.4:**
 
 ```
 Retomamos el desarrollo del sistema autónomo OpenClaw en VPS vmi3186391 (Contabo, root).
 
-Lee y sigue al pie de la letra el documento /root/.openclaw/handoff/SPRINT-3.1-HANDOFF.md antes de responder nada. Ese documento contiene el estado exacto del sistema, todos los cambios de la sesión anterior y los gaps pendientes.
+Lee y sigue al pie de la letra el documento /root/.openclaw/handoff/SPRINT-3.1-HANDOFF.md antes de responder nada. Ese documento contiene el estado exacto del sistema, todos los cambios aplicados hasta Sprint 3.3 y los gaps pendientes.
 
-Contexto clave:
+Contexto clave (estado al cierre Sprint 3.3, 2026-05-05):
 - OpenClaw 2026.5.2 en /usr/lib/node_modules/openclaw/
-- Gateway token en /root/.openclaw/.env  → export OPENCLAW_GATEWAY_TOKEN=$(grep OPENCLAW_GATEWAY_TOKEN /root/.openclaw/.env | cut -d= -f2-)
-- Sprint 006 en ready-for-review — producto sin items pendientes en backlog
+- Gateway token en /root/.openclaw/.env → export OPENCLAW_GATEWAY_TOKEN=$(grep OPENCLAW_GATEWAY_TOKEN /root/.openclaw/.env | cut -d= -f2-)
+- Sprint 006 en ready-for-review — 2/2 items done
 - 4 crons activos: health-check-evening (22:00), nightly-bugs-first (03:00), daily-standup (09:00 L-V), sprint-pickup (08:00 lunes)
-- Los 3 crons corrieron ayer: todos status=ok con los fixes de S-01/S-02/S-04
+- exec-approvals.json: backend-dev y frontend-dev habilitados (ask=off, askFallback=deny)
 
-Los gaps más urgentes a cerrar (en este orden de prioridad):
+Cerrado en Sprint 3.3:
+- G-17: sprint-manager.js propaga startedAt/completedAt a product-backlog; impedimentHistory archivado
+- G-14 infra: exec-approvals para backend-dev y frontend-dev habilitados
+- G-15 parcial: tns-debugger-triage en TOOLS.md de Roy; node-specialist pendiente
 
-1. sub-G-25 — sessions_list timeout en standup: Roy no puede consultar estado de workers en sesión aislada. Investigar opciones: (a) timeout del tool, (b) prompt sin sessions_list usando sprint-state.json.
+Gaps pendientes a cerrar (en este orden de prioridad):
 
-2. G-14 e2e QA loop real: enviar una tarea real vía Telegram → Roy → backend-dev → PR → qa-analyst → feedback → fix → Felipe merge. Workers (backend-dev/frontend-dev) necesitan acceso a worktrees en /opt/tns-workbench/autonomous-workbench/worktrees/ — verificar si workspace restriction los bloquea.
+1. G-14 e2e QA loop real: infraestructura 100% lista. Ejecutar el loop con tarea real:
+   - Felipe envía tarea vía Telegram a Anibal → Roy
+   - Roy despacha backend-dev → crea PR en feature branch
+   - Roy despacha qa-analyst con PR number → revisa y comenta
+   - Si issues → Roy notifica backend-dev → itera (max 3 veces, política Ralph Wiggum)
+   - qa-analyst aprueba → Roy notifica a Felipe vía Anibal → Felipe hace merge
+   TAREA SUGERIDA: "Roy, crea un endpoint GET /health con respuesta {status: ok, version, uptime} en el repo autonomous-workbench."
 
-3. G-14.b workers workspace: crear symlinks en workspaces/backend-dev/ y workspaces/frontend-dev/ apuntando al worktree activo del repo, para que los workers puedan leer/escribir código.
+2. Verificar primer run del cron sprint-pickup (lunes 11/05 08:00 Santiago). Debería importar issues de GitHub, abrir sprint-007 y arrancar el primer item.
 
-4. Verificar primer run del cron sprint-pickup (lunes 11/05 08:00 Santiago). Si el sprint está en ready-for-review, debería importar issues de GitHub, abrir sprint-007 y arrancar el primer item.
-
-5. G-24.b/c — migrar botToken y perplexity apiKey a .env para sacar secrets de openclaw.json.
+3. G-15 pendiente: node-specialist (skill no instalada). Instalar cuando haya issue real de performance Node.js.
 
 Antes de cualquier cambio: leer el archivo actual con Read, hacer backup .bak.YYYYMMDD-HHMMSS, validar con jq empty, reiniciar gateway.
 ```
@@ -320,7 +417,7 @@ Antes de cualquier cambio: leer el archivo actual con Read, hacer backup .bak.YY
 1. **Regla #3 — 0 gasto por token**: solo OAuth. `usage.cost > 0` en `gpt-5.4` NO viola esta regla.
 2. **Regla #5 — Branch protection by design**: ningún agente hace commit/push directo a `dev`/`main`/`master`.
 3. **D-013 — Separación Anibal/Roy**: Roy habla a Felipe solo vía Anibal (salvo 5 breakglass en HEARTBEAT.md de Roy).
-4. **Antes de editar `openclaw.json`**: backup `.bak.YYYYMMDD-HHMMSS.preX` → `jq empty` → esperar `lastKnownGood`.
+4. **Antes de cualquier cambio en archivos de config** (`openclaw.json`, `exec-approvals.json`, `cron/jobs.json`): (1) leer el archivo con Read, (2) backup `.bak.YYYYMMDD-HHMMSS.preX`, (3) validar con `jq empty`, (4) reiniciar gateway (`systemctl restart openclaw-gateway`). **Nota**: `exec-approvals.json` NO está sujeto a hot-reload — requiere restart obligatorio para aplicar cambios.
 5. **Producción**: no tocar sin OK explícito de Felipe.
 
 ---
