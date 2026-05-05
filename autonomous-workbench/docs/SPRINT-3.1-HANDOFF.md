@@ -174,7 +174,7 @@ git, gh, ls, cat, grep, find, pwd, echo, head, tail, wc, node, npm, python3
 | G-14.b | Symlinks workers workspace (backend-dev/frontend-dev) | ✅ Symlinks creados Sprint 3.2: repo, worktrees, skills |
 | G-15 | Especialistas efímeros probados | ❌ Pendiente (Sprint 3+) |
 | G-16 | Decisión sprint-manager.js vs Roy | ✅ Opción A — sprint-manager.js como motor |
-| G-17 | Política unblock + completedAt backlog | ❌ Pendiente (Sprint 3+) |
+| G-17 | Política unblock + completedAt backlog | ✅ Cerrado Sprint 3.3 — timestamps propagados a product-backlog; impedimentHistory archivado |
 | G-18 | Branch protection en todos los agentes | ⚠️ Parcial — Roy ✅, workers pendiente de e2e real |
 | G-19 | Auditar auth claude-sonnet-4-6 | ✅ Cerrado Sprint 0 |
 | G-20 | Naming mismatch Anibal/Roy | ✅ Cerrado (D-013) |
@@ -188,7 +188,7 @@ git, gh, ls, cat, grep, find, pwd, echo, head, tail, wc, node, npm, python3
 | sub-G-25 | sessions_list timeout en standup | ✅ Resuelto Sprint 3.2 — standup sin sessions_list, usa workspace paths |
 | sprint-pickup | Cron autónomo backlog pickup | ✅ Creado — primer run lunes 11/05 |
 
-**Conteo**: 22 cerrados ✅ / 4 pendientes ❌ o ⚠️ (Sprint 3.2 cerró: sub-G-25, G-14.b, G-24.b, G-24.c)
+**Conteo**: 23 cerrados ✅ / 3 pendientes ⚠️ (Sprint 3.3 cerró: G-17; parcial: G-15; G-14 loop pendiente)
 
 ---
 
@@ -287,6 +287,49 @@ Cuando un item se bloquea/desbloquea, `sprint-manager.js blockItem/unblockItem` 
 openclaw.json.bak.20260505-194254.pre-G25  — antes de sub-G-25
 openclaw.json.bak.20260505-201510.pre-G24bc — antes de G-24.b/c
 cron/jobs.json.bak.20260505-194254.pre-G25
+```
+
+---
+
+## 4.ter. Cambios aplicados en Sprint 3.3 (2026-05-05)
+
+### G-14 infra — exec-approvals para backend-dev/frontend-dev ✅
+
+**Gap detectado:** `backend-dev` y `frontend-dev` no tenían sección en `exec-approvals.json` → cualquier comando requería aprobación manual (bloqueaba el e2e loop).
+
+| Agente | Cambio |
+|--------|--------|
+| `exec-approvals.json` → `backend-dev` | Sección nueva: `ask=off, askFallback=deny, security=allowlist` |
+| `exec-approvals.json` → `frontend-dev` | Idem |
+| Allowlist (ambos) | git, gh, ls, cat, grep, find, pwd, echo, head, tail, wc, node, npm, python3, mkdir, cp, sort, printf, sed, awk, jq, date |
+
+Gateway reiniciado para aplicar cambios.
+
+### G-17 — Timestamps en product-backlog + política unblock ✅
+
+**Bug:** `sprint-manager.js` calculaba `startedAt`/`completedAt` en el sprint-state pero NO los propagaba al `product-backlog.json`. Al desbloquear, el impedimento se borraba permanentemente (sin audit trail).
+
+| Función | Cambio |
+|---------|--------|
+| `startItem` | `backlogItem.startedAt = moved.startedAt` antes de `saveJson` |
+| `completeItem` | `backlogItem.completedAt = moved.completedAt` antes de `saveJson` |
+| `unblockItem` | Impedimento resuelto → `resolved.resolvedAt` + push a `sprintState.impedimentHistory[]` (no se borra) |
+
+### G-15 — Debugger skill documentada en TOOLS.md ⚠️
+
+**Parcial:** La skill `tns-debugger-triage` ya existía en `/root/.openclaw/skills/`. Faltaba en la allowlist de Roy.
+
+| Archivo | Cambio |
+|---------|--------|
+| `workspaces/roy/TOOLS.md` | Sección `tns-debugger-triage` + nota sobre `node-specialist` pendiente |
+| `agents/roy/agent/TOOLS.md` | Idem (sincronizado) |
+
+**`node-specialist`:** Pendiente instalación. No hay skill ni agente. Instalar cuando haya un issue real de performance Node.js.
+
+**Backups Sprint 3.3:**
+```
+exec-approvals.json.bak.20260505-205922.pre-G14-workers
+sprint-manager.js.bak.20260505-205922.pre-G17
 ```
 
 ---
