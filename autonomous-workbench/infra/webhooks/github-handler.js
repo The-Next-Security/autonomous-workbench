@@ -70,6 +70,10 @@ async function handle(req, res) {
   const remote = req.socket.remoteAddress || '';
   const ts = new Date().toISOString();
 
+  if (req.method === 'GET' && req.url === '/health') {
+    return respond(res, 200, { ok: true, service: 'github-handler' });
+  }
+
   if (req.method !== 'POST' || req.url !== '/webhooks/github') {
     return respond(res, 404, { error: 'not found' });
   }
